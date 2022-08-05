@@ -1,7 +1,8 @@
+const fs = require('fs')
 const axios = require('axios')
 
+const { bearerToken } = require('./token.json')
 const baseUrl = 'https://api.trackmanrange.com/api'
-const bearerToken = ''
 
 axios.defaults.headers.common['Authorization'] = `Bearer ${bearerToken}`
 
@@ -17,12 +18,43 @@ const getStrokes = async (url, storedData) => {
 }
 
 const handler = async () => {
+  console.log('Getting all sessions')
   const { data: sessionsData } = await axios.get(`${baseUrl}/activities`)
-  let sessions = sessionsData?.items
+  const sessions = sessionsData?.items
 
   sessions.forEach(async (session) => {
-    const strokes = await getStrokes(session._links.strokes.href, [])
-    console.log(JSON.stringify(strokes, null, 2))
+    console.log('Looking at individual session data')
+    const filteredSession = {
+      id: session.id,
+      facility: session.facility.name,
+      playType: session.kind,
+      bay: session.bays[0].name,
+      startedAt: session.startedAt,
+      endedAt: session.endedAt,
+      strokes: []
+    }
+
+    console.log('Getting all strokes from session')
+    const strokePages = await getStrokes(session._links.strokes.href, [])
+
+    console.log('Assigning stroke data to session')
+    strokePages.forEach((strokePage) => {
+      strokePage.items.map((stroke) => {
+        const filteredStroke = {
+          id: stroke.id,
+          proBallMeasurement: stroke.proBallMeasurement,
+          club: stroke.club,
+          bay: stroke.bayName,
+          createdAt: stroke.createdAt
+        }
+        return filteredSession.strokes = [...filteredSession.strokes, filteredStroke]
+      })
+    })
+
+    console.log('Writing session data to file')
+    fs.writeFile('./output.json', JSON.stringify(filteredSession, null, 2), (err) => {
+      if (err) return console.error(err)
+    })
   })
 }
 
