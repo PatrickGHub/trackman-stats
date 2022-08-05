@@ -1,5 +1,5 @@
 {
-  "name": "scraper_lambda",
+  "name": "trackman",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",

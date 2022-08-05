@@ -1,16 +1,16 @@
-data "archive_file" "scraper_lambda" {
+data "archive_file" "trackman" {
   type        = "zip"
-  source_dir  = "scraper_lambda"
-  output_path = "scraper_lambda.zip"
+  source_dir  = "trackman"
+  output_path = "trackman.zip"
 }
 
-resource "aws_lambda_function" "scraper_lambda" {
-  function_name = "scraper_lambda"
+resource "aws_lambda_function" "trackman" {
+  function_name = "trackman"
   runtime = "nodejs16.x"
-  role = aws_iam_role.scraper_lambda_role.arn
+  role = aws_iam_role.trackman_role.arn
 
-  source_code_hash = data.archive_file.scraper_lambda.output_base64sha256
-  filename = data.archive_file.scraper_lambda.output_path
+  source_code_hash = data.archive_file.trackman.output_base64sha256
+  filename = data.archive_file.trackman.output_path
   handler = "index.handler"
   timeout = 60
 }

@@ -9,12 +9,12 @@ data "aws_iam_policy_document" "lambda-role-policy" {
   }
 }
 
-resource "aws_iam_role" "scraper_lambda_role" {
-  name = "scraper_lambda_role"
+resource "aws_iam_role" "trackman_role" {
+  name = "trackman_role"
   assume_role_policy = data.aws_iam_policy_document.lambda-role-policy.json
 
   inline_policy {
-    name   = "scraper_role_policy"
+    name   = "trackman_role_policy"
     policy = jsonencode(
       {
         Statement = [

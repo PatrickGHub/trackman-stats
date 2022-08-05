@@ -42,7 +42,7 @@ const handler = async () => {
     const strokePages = await getStrokes(session._links.strokes.href, [])
 
     console.log('Assigning stroke data to session')
-    strokePages.forEach((strokePage) => {
+    for (const strokePage of strokePages) {
       strokePage.items.map((stroke) => {
         const filteredStroke = {
           id: stroke.id,
@@ -53,7 +53,7 @@ const handler = async () => {
         }
         return filteredSession.strokes = [...filteredSession.strokes, filteredStroke]
       })
-    })
+    }
 
     console.log('Adding session to sessions array')
     filteredSessions = [...filteredSessions, filteredSession]
