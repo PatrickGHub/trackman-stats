@@ -1,5 +1,8 @@
 const fs = require('fs')
 const axios = require('axios')
+const AWS = require('aws-sdk')
+
+const s3 = new AWS.S3()
 
 const { bearerToken } = require('./token.json')
 const baseUrl = 'https://api.trackmanrange.com/api'
@@ -21,9 +24,10 @@ const handler = async () => {
   console.log('Getting all sessions')
   const { data: sessionsData } = await axios.get(`${baseUrl}/activities`)
   const sessions = sessionsData?.items
+  let filteredSessions = []
 
-  sessions.forEach(async (session) => {
-    console.log('Looking at individual session data')
+  for (const session of sessions) {
+    console.log(`Looking at individual session data: ${session.id}`)
     const filteredSession = {
       id: session.id,
       facility: session.facility.name,
@@ -51,11 +55,16 @@ const handler = async () => {
       })
     })
 
-    console.log('Writing session data to file')
-    fs.writeFile('./output.json', JSON.stringify(filteredSession, null, 2), (err) => {
-      if (err) return console.error(err)
-    })
-  })
+    console.log('Adding session to sessions array')
+    filteredSessions = [...filteredSessions, filteredSession]
+  }
+
+  console.log('Writing session data to file in S3')
+  await s3.putObject({
+    Bucket: 'trackman-bucket',
+    Key: 'sessions.json',
+    Body: JSON.stringify(filteredSessions)
+  }).promise()
 }
 
 module.exports = {
