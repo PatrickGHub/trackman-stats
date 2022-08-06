@@ -21,6 +21,14 @@ const getPaginatedData = async (url, storedData = []) => {
 }
 
 const handler = async () => {
+  const s3Object = await s3.getObject({
+    Bucket: 'trackman-bucket',
+    Key: 'sessions.json'
+  }).promise()
+
+  const previouslyStoredData = JSON.parse(s3Object.Body.toString('utf-8'))
+  const previouslyStoredSessionIds = previouslyStoredData.map((session) => session.id)
+
   console.log('Getting all sessions')
   let sessions = await getPaginatedData(`${baseUrl}/activities`)
   sessions = sessions.flatMap((session) => {
@@ -34,6 +42,11 @@ const handler = async () => {
 
     if (session.kind !== 'Practice') {
       console.log('Session was a game. Stroke data not available.')
+      continue
+    }
+
+    if (previouslyStoredSessionIds.includes(session.id)) {
+      console.log('Session is not new. Skipping.')
       continue
     }
 
@@ -76,11 +89,14 @@ const handler = async () => {
     }
   }
 
+  console.log('Merging old and new data')
+  const updatedSessions = [...previouslyStoredData, ...filteredSessions]
+
   console.log('Writing session data to file in S3')
   await s3.putObject({
     Bucket: 'trackman-bucket',
     Key: 'sessions.json',
-    Body: JSON.stringify(filteredSessions)
+    Body: JSON.stringify(updatedSessions)
   }).promise()
 }
 

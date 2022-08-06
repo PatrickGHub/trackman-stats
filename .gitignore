@@ -1,6 +1,7 @@
 .DS_STORE
 node_modules
 token.json
+sessions.json
 
 .terraform
 *.tfstate
